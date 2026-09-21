@@ -14,6 +14,11 @@ if (!process.env.JWT_SECRET) {
   process.exit(1);
 }
 
+if (process.env.JWT_SECRET == "CHANGE-ME-NOW-PLS") {
+  consola.error("You forgot to change JWT_SECRET!");
+  process.exit(1);
+}
+
 // Listen to me
 
 const port = 4090; // GeForce RTX 4090
