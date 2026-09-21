@@ -1,0 +1,33 @@
+{
+  "name": "@kx1xit/meowdb",
+  "version": "0.1.0",
+  "description": "The server for an account-based storage extension for TurboWarp",
+  "license": "Apache-2.0",
+  "author": "Kane",
+  "type": "module",
+  "main": "src/index.js",
+  "bin": {
+    "meowdb": "src/index.js"
+  },
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "better-sqlite3": "^13.0.3",
+    "consola": "^3.4.2",
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "quick.db": "^9.1.7"
+  },
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "vitest run"
+  },
+  "allowScripts": {
+    "bcrypt": true,
+    "better-sqlite3": true
+  },
+  "devDependencies": {
+    "supertest": "^7.2.2",
+    "vitest": "^5.0.1"
+  }
+}
