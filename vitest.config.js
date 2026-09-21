@@ -4,6 +4,7 @@ export default defineConfig({
   test: {
     env: {
       JWT_SECRET: "test-secret",
+      DB_FILE: "meow.test.sqlite",
     },
   },
 });
