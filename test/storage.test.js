@@ -196,9 +196,9 @@ describe("/storage quotas", async function () {
     delete process.env.MAX_STORAGE_BYTES;
   });
 
-  test("Byte quota counts the replacement delta and preserves the old value on rejection", async function () {
+  test("Byte quota counts the whole serialized store and preserves the old value on rejection", async function () {
     process.env.MAX_STORAGE_KEYS = "100";
-    process.env.MAX_STORAGE_BYTES = "8";
+    process.env.MAX_STORAGE_BYTES = "13";
 
     const res1 = await request(app)
       .put(`/api/v1/storage/a`)

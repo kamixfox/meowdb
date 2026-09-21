@@ -14,14 +14,12 @@ storageRouter.put("/:key", async (req, res) => {
   const value = req.body.value;
 
   const maxKeys = Number(process.env.MAX_STORAGE_KEYS) || 100;
-  const maxBytes = Number(process.env.MAX_STORAGE_BYTES) || 1024 * 1024;
 
   const result = await setStorageValueIfAllowed(
     req.user.username,
     key,
     value,
     maxKeys,
-    maxBytes,
   );
   if (!result.ok) {
     return res.status(400).json({ error: result.error });

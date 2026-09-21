@@ -44,16 +44,11 @@ export async function createUserIfAbsent(username, value) {
   return transaction(value);
 }
 
-export async function setStorageValueIfAllowed(
-  username,
-  key,
-  value,
-  maxKeys,
-  maxBytes,
-) {
+export async function setStorageValueIfAllowed(username, key, value, maxKeys) {
   const account = sanitizeSegment(username);
   const storageKey = sanitizeSegment(key);
   const database = db.driver.database;
+  const maxBytes = Number(process.env.MAX_STORAGE_BYTES) || 1024 * 1024;
   const transaction = database.transaction((acc, k, v, maxK, maxB) => {
     const row = database
       .prepare("SELECT json FROM json WHERE ID = ?")
@@ -62,15 +57,8 @@ export async function setStorageValueIfAllowed(
     const store = allStorage[acc] ?? {};
     const exists = Object.prototype.hasOwnProperty.call(store, k);
     const totalKeys = Object.keys(store).length;
-    const totalBytes = Object.values(store).reduce(
-      (sum, val) => sum + Buffer.byteLength(JSON.stringify(val), "utf8"),
-      0,
-    );
-    const newBytes = Buffer.byteLength(JSON.stringify(v), "utf8");
-    const replacedBytes = exists
-      ? Buffer.byteLength(JSON.stringify(store[k]), "utf8")
-      : 0;
-    const projectedBytes = totalBytes - replacedBytes + newBytes;
+    const candidate = { ...store, [k]: v };
+    const projectedBytes = Buffer.byteLength(JSON.stringify(candidate), "utf8");
     if (!exists && totalKeys >= maxK) {
       return {
         ok: false,
