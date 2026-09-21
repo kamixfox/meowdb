@@ -59,6 +59,23 @@ describe("/auth/register", async function () {
     expect(response.body).to.have.property("error");
     expect(response.body.error).to.equal("This user already exists.");
   });
+  test("Concurrent registrations: only one succeeds and only it gets a token", async function () {
+    const username = "race-user";
+    await db.delete(userPath(username));
+
+    const payload = { username, password: "test-password" };
+    const responses = await Promise.all([
+      request(app).post("/api/v1/auth/register").send(payload),
+      request(app).post("/api/v1/auth/register").send(payload),
+    ]);
+
+    const ok = responses.filter((res) => res.status === 200);
+    const rejected = responses.filter((res) => res.status === 400);
+
+    expect(ok.length).to.equal(1);
+    expect(rejected.length).to.equal(1);
+    expect(rejected[0].body.error).to.equal("This user already exists.");
+  });
 });
 
 describe("/auth/login", async function () {

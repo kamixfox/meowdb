@@ -22,10 +22,6 @@ storageRouter.put("/:key", async (req, res) => {
 });
 
 storageRouter.get("/:key", async (req, res) => {
-  if (!req.body) {
-    return res.status(400).json({ error: "Invalid request." });
-  }
-
   const key = req.params.key;
   consola.log(`- Got a GET request: storage/${key}.`);
 

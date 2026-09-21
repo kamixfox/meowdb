@@ -1,6 +1,6 @@
 import { Router } from "express";
 import consola from "consola";
-import { userPath, db } from "../db.js";
+import { userPath, db, createUserIfAbsent } from "../db.js";
 import { hashPassword, verifyPassword } from "../passwords.js";
 import { generateToken } from "../tokens.js";
 
@@ -21,7 +21,9 @@ authRouter.post("/register", async (req, res) => {
     return res.status(400).json({ error: "No password was supplied." });
   }
   if (Buffer.byteLength(data.password, "utf8") > 72) {
-    return res.status(400).json({ error: "Password exceeds the 72-byte limit." });
+    return res
+      .status(400)
+      .json({ error: "Password exceeds the 72-byte limit." });
   }
   if (await db.has(userPath(data.username))) {
     return res.status(400).json({ error: "This user already exists." });
@@ -30,10 +32,13 @@ authRouter.post("/register", async (req, res) => {
   consola.log("  Hashing the password...");
   const hashedPassword = await hashPassword(data.password);
   consola.log("  Writing the user data...");
-  await db.set(userPath(data.username), {
+  const created = await createUserIfAbsent(data.username, {
     username: data.username,
     passwordHash: hashedPassword,
   });
+  if (!created) {
+    return res.status(400).json({ error: "This user already exists." });
+  }
 
   consola.log("  Generating the user a token...");
   const payload = {
@@ -62,7 +67,9 @@ authRouter.post("/login", async (req, res) => {
     return res.status(400).json({ error: "No password was supplied." });
   }
   if (Buffer.byteLength(data.password, "utf8") > 72) {
-    return res.status(400).json({ error: "Password exceeds the 72-byte limit." });
+    return res
+      .status(400)
+      .json({ error: "Password exceeds the 72-byte limit." });
   }
   if (!(await db.has(userPath(data.username)))) {
     return res.status(401).json({ error: "Incorrect credentials." }); // Don't let the client know the username isn't right...
