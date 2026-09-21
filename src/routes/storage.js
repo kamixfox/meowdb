@@ -12,7 +12,6 @@ storageRouter.put("/:key", async (req, res) => {
   const key = req.params.key;
   consola.log(`- Got a PUT request: storage/${key}.`);
   const value = req.body.value;
-  consola.log("  Value to be written: " + value);
 
   await db.set(storagePath(req.user.username, key), value);
   consola.info("Wrote to the key.");

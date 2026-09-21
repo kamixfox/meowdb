@@ -13,7 +13,6 @@ authRouter.post("/register", async (req, res) => {
 
   consola.log("- Got a POST request: auth/register.");
   const data = req.body;
-  consola.log("  Request: " + JSON.stringify(data));
 
   if (!data.username) {
     return res.status(400).json({ error: "No username was supplied." }); // res.json replies with JSON
@@ -52,7 +51,6 @@ authRouter.post("/login", async (req, res) => {
 
   consola.log("- Got a POST request: auth/login.");
   const data = req.body;
-  consola.log("  Request: " + JSON.stringify(data));
 
   if (!data.username) {
     return res.status(400).json({ error: "No username was supplied." });
