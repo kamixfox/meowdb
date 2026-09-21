@@ -1,6 +1,11 @@
 import { Router } from "express";
 import consola from "consola";
-import { storagePath, db, setStorageValueIfAllowed } from "../db.js";
+import {
+  storagePath,
+  db,
+  setStorageValueIfAllowed,
+  configuredLimit,
+} from "../db.js";
 
 export const storageRouter = Router();
 
@@ -13,7 +18,7 @@ storageRouter.put("/:key", async (req, res) => {
   consola.log(`- Got a PUT request: storage/${key}.`);
   const value = req.body.value;
 
-  const maxKeys = Number(process.env.MAX_STORAGE_KEYS) || 100;
+  const maxKeys = configuredLimit("MAX_STORAGE_KEYS", 100);
 
   const result = await setStorageValueIfAllowed(
     req.user.username,

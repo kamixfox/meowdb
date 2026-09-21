@@ -8,6 +8,20 @@ export async function initializeDatabase(/* Never shorten names, chums! */) {
   consola.ready("The database was initialized!");
 }
 
+export function configuredLimit(name, fallback) {
+  const raw = process.env[name];
+  if (raw === undefined) {
+    return fallback;
+  }
+  const value = Number(raw);
+  if (!Number.isFinite(value) || !Number.isInteger(value) || value <= 0) {
+    throw new Error(
+      `Invalid ${name} "${raw}": expected a finite positive integer.`,
+    );
+  }
+  return value;
+}
+
 export function sanitizeSegment(segment) {
   return segment.replace(/%/g, "%25").replace(/\./g, "%2E");
 }
@@ -48,7 +62,7 @@ export async function setStorageValueIfAllowed(username, key, value, maxKeys) {
   const account = sanitizeSegment(username);
   const storageKey = sanitizeSegment(key);
   const database = db.driver.database;
-  const maxBytes = Number(process.env.MAX_STORAGE_BYTES) || 1024 * 1024;
+  const maxBytes = configuredLimit("MAX_STORAGE_BYTES", 1024 * 1024);
   const transaction = database.transaction((acc, k, v, maxK, maxB) => {
     const row = database
       .prepare("SELECT json FROM json WHERE ID = ?")

@@ -2,6 +2,7 @@
 
 import consola from "consola";
 import { app } from "./app.js";
+import { configuredLimit } from "./db.js";
 
 /**
  * TODO: Make the API base URL configurable. Please.
@@ -17,6 +18,18 @@ if (!process.env.JWT_SECRET) {
 if (process.env.JWT_SECRET == "<your-strong-random-secret>") {
   consola.error("You forgot to change JWT_SECRET!");
   process.exit(1);
+}
+
+for (const [name, fallback] of [
+  ["MAX_STORAGE_KEYS", 100],
+  ["MAX_STORAGE_BYTES", 1024 * 1024],
+]) {
+  try {
+    configuredLimit(name, fallback);
+  } catch (err) {
+    consola.error(err.message);
+    process.exit(1);
+  }
 }
 
 // Listen to me
