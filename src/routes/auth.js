@@ -71,14 +71,13 @@ authRouter.post("/login", async (req, res) => {
       .status(400)
       .json({ error: "Password exceeds the 72-byte limit." });
   }
-  if (!(await db.has(userPath(data.username)))) {
-    return res.status(401).json({ error: "Incorrect credentials." }); // Don't let the client know the username isn't right...
-  }
-
   consola.log("  Getting user record...");
   const user = await db.get(userPath(data.username));
+  const dummyHash =
+    "$2b$12$EYNaIJ7YfLh/iLaz6/vdR.pWoPr7odOp1aBZ.3ekBXVENieDC1gSu";
+  const passwordHash = user ? user.passwordHash : dummyHash;
 
-  if (!(await verifyPassword(data.password, user.passwordHash))) {
+  if (!user || !(await verifyPassword(data.password, passwordHash))) {
     return res.status(401).json({ error: "Incorrect credentials." });
   }
 
