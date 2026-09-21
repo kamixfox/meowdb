@@ -9,7 +9,7 @@ export async function initializeDatabase(/* Never shorten names, chums! */) {
 }
 
 export function sanitizeSegment(segment) {
-  return segment.replace(/\./g, "%2E");
+  return segment.replace(/%/g, "%25").replace(/\./g, "%2E");
 }
 
 export function userPath(username) {
