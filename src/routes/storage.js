@@ -1,11 +1,11 @@
 import { Router } from "express";
 import consola from "consola";
-import { storagePath, db } from "../db.js";
+import { storagePath, db, setStorageValueIfAllowed } from "../db.js";
 
 export const storageRouter = Router();
 
 storageRouter.put("/:key", async (req, res) => {
-  if (!req.body) {
+  if (!req.body || !("value" in req.body)) {
     return res.status(400).json({ error: "Invalid request." });
   }
 
@@ -13,7 +13,19 @@ storageRouter.put("/:key", async (req, res) => {
   consola.log(`- Got a PUT request: storage/${key}.`);
   const value = req.body.value;
 
-  await db.set(storagePath(req.user.username, key), value);
+  const maxKeys = Number(process.env.MAX_STORAGE_KEYS) || 100;
+  const maxBytes = Number(process.env.MAX_STORAGE_BYTES) || 1024 * 1024;
+
+  const result = await setStorageValueIfAllowed(
+    req.user.username,
+    key,
+    value,
+    maxKeys,
+    maxBytes,
+  );
+  if (!result.ok) {
+    return res.status(400).json({ error: result.error });
+  }
   consola.info("Wrote to the key.");
 
   return res.json({

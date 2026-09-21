@@ -44,4 +44,55 @@ export async function createUserIfAbsent(username, value) {
   return transaction(value);
 }
 
+export async function setStorageValueIfAllowed(
+  username,
+  key,
+  value,
+  maxKeys,
+  maxBytes,
+) {
+  const account = sanitizeSegment(username);
+  const storageKey = sanitizeSegment(key);
+  const database = db.driver.database;
+  const transaction = database.transaction((acc, k, v, maxK, maxB) => {
+    const row = database
+      .prepare("SELECT json FROM json WHERE ID = ?")
+      .get("storage");
+    const allStorage = row ? JSON.parse(row.json) : {};
+    const store = allStorage[acc] ?? {};
+    const exists = Object.prototype.hasOwnProperty.call(store, k);
+    const totalKeys = Object.keys(store).length;
+    const totalBytes = Object.values(store).reduce(
+      (sum, val) => sum + Buffer.byteLength(JSON.stringify(val), "utf8"),
+      0,
+    );
+    const newBytes = Buffer.byteLength(JSON.stringify(v), "utf8");
+    const replacedBytes = exists
+      ? Buffer.byteLength(JSON.stringify(store[k]), "utf8")
+      : 0;
+    const projectedBytes = totalBytes - replacedBytes + newBytes;
+    if (!exists && totalKeys >= maxK) {
+      return {
+        ok: false,
+        error: `This account cannot store more than ${maxK} keys.`,
+      };
+    }
+    if (projectedBytes > maxB) {
+      return {
+        ok: false,
+        error: `This account exceeds the ${maxB} byte storage limit.`,
+      };
+    }
+    store[k] = v;
+    allStorage[acc] = store;
+    database
+      .prepare(
+        "INSERT INTO json (ID, json) VALUES (?, ?) ON CONFLICT(ID) DO UPDATE SET json = excluded.json",
+      )
+      .run("storage", JSON.stringify(allStorage));
+    return { ok: true };
+  });
+  return transaction(account, storageKey, value, maxKeys, maxBytes);
+}
+
 export { db };

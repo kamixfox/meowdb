@@ -1,7 +1,7 @@
 import { beforeAll, afterAll, describe, test, expect } from "vitest";
 import request from "supertest";
 import { app } from "../src/app.js";
-import { db, userPath, storagePath } from "../src/db.js";
+import { db, userPath, storagePath, sanitizeSegment } from "../src/db.js";
 import { generateToken } from "../src/tokens.js";
 
 describe("/storage", async function () {
@@ -133,5 +133,108 @@ describe("/storage", async function () {
 
     expect(res.status).toBe(200);
     expect(await db.has(storagePath(username, "dot.key"))).toBe(true);
+  });
+});
+
+describe("/storage quotas", async function () {
+  const username = "quota-test-user";
+  let authToken;
+
+  beforeAll(async function () {
+    await db.delete(userPath(username));
+    const row = db.driver.database
+      .prepare("SELECT json FROM json WHERE ID = ?")
+      .get("storage");
+    const allStorage = row ? JSON.parse(row.json) : {};
+    for (const key of Object.keys(
+      allStorage[sanitizeSegment(username)] ?? {},
+    )) {
+      await db.delete(storagePath(username, key));
+    }
+    await db.set(userPath(username), {
+      username: username,
+      passwordHash: "fake",
+    });
+    authToken = await generateToken({ username: username });
+  });
+
+  afterAll(async function () {
+    delete process.env.MAX_STORAGE_KEYS;
+    delete process.env.MAX_STORAGE_BYTES;
+    await db.delete(userPath(username));
+  });
+
+  test("Key quota is enforced and existing values are preserved", async function () {
+    process.env.MAX_STORAGE_KEYS = "2";
+    process.env.MAX_STORAGE_BYTES = "1000000";
+
+    const res1 = await request(app)
+      .put(`/api/v1/storage/k1`)
+      .set("Authorization", `Bearer ${authToken}`)
+      .send({ value: "v1" });
+    expect(res1.status).toBe(200);
+
+    const res2 = await request(app)
+      .put(`/api/v1/storage/k2`)
+      .set("Authorization", `Bearer ${authToken}`)
+      .send({ value: "v2" });
+    expect(res2.status).toBe(200);
+
+    const res3 = await request(app)
+      .put(`/api/v1/storage/k3`)
+      .set("Authorization", `Bearer ${authToken}`)
+      .send({ value: "v3" });
+    expect(res3.status).toBe(400);
+    expect(res3.body.error).toMatch(/keys/);
+
+    expect(await db.has(storagePath(username, "k2"))).toBe(true);
+    expect(await db.has(storagePath(username, "k3"))).toBe(false);
+
+    await db.delete(storagePath(username, "k1"));
+    await db.delete(storagePath(username, "k2"));
+    delete process.env.MAX_STORAGE_KEYS;
+    delete process.env.MAX_STORAGE_BYTES;
+  });
+
+  test("Byte quota counts the replacement delta and preserves the old value on rejection", async function () {
+    process.env.MAX_STORAGE_KEYS = "100";
+    process.env.MAX_STORAGE_BYTES = "8";
+
+    const res1 = await request(app)
+      .put(`/api/v1/storage/a`)
+      .set("Authorization", `Bearer ${authToken}`)
+      .send({ value: "hi" });
+    expect(res1.status).toBe(200);
+
+    const res2 = await request(app)
+      .put(`/api/v1/storage/a`)
+      .set("Authorization", `Bearer ${authToken}`)
+      .send({ value: "hello" });
+    expect(res2.status).toBe(200);
+    expect(res2.body).toEqual({ success: true });
+
+    const res3 = await request(app)
+      .put(`/api/v1/storage/a`)
+      .set("Authorization", `Bearer ${authToken}`)
+      .send({ value: "hello!!" });
+    expect(res3.status).toBe(400);
+    expect(res3.body.error).toMatch(/storage limit/);
+
+    const after = await request(app)
+      .get(`/api/v1/storage/a`)
+      .set("Authorization", `Bearer ${authToken}`);
+    expect(after.status).toBe(200);
+    expect(after.body.value).toBe("hello");
+
+    const res4 = await request(app)
+      .put(`/api/v1/storage/b`)
+      .set("Authorization", `Bearer ${authToken}`)
+      .send({ value: "hi" });
+    expect(res4.status).toBe(400);
+    expect(await db.has(storagePath(username, "b"))).toBe(false);
+
+    await db.delete(storagePath(username, "a"));
+    delete process.env.MAX_STORAGE_KEYS;
+    delete process.env.MAX_STORAGE_BYTES;
   });
 });
