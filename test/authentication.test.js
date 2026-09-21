@@ -2,7 +2,7 @@ import { beforeAll, describe, test, expect } from "vitest";
 import request from "supertest";
 import { app } from "../src/app.js";
 import { db, userPath } from "../src/db.js";
-import { generateToken, verifyToken } from "../src/tokens.js";
+import { verifyToken } from "../src/tokens.js";
 
 describe("Other endpoints", async function () {
   test("GET /api/v1/ping works", async function () {
@@ -37,12 +37,12 @@ describe("/auth/register", async function () {
   });
   test("That token is correct", async function () {
     process.env.JWT_SECRET = "test-secret";
-  
+
     const payload = {
       username: "test-user",
     };
     const decodedToken = await verifyToken(token);
-  
+
     expect(decodedToken.username).toEqual(payload.username);
   });
   test("Fails if an account already exists", async function () {
@@ -52,7 +52,6 @@ describe("/auth/register", async function () {
       .post("/api/v1/auth/register")
       .send(payload)
       .set("Accept", "application/json");
-
 
     // Now it should fail since the user already exists
 
@@ -82,12 +81,12 @@ describe("/auth/login", async function () {
   });
   test("That token is correct", async function () {
     process.env.JWT_SECRET = "test-secret";
-  
+
     const payload = {
       username: "test-user",
     };
     const decodedToken = await verifyToken(token);
-  
+
     expect(decodedToken.username).toEqual(payload.username);
   });
   test("Fails if an account doesn't exists", async function () {
@@ -97,7 +96,6 @@ describe("/auth/login", async function () {
       .post("/api/v1/auth/login")
       .send(payload)
       .set("Accept", "application/json");
-
 
     // Now it should fail since the user already exists
 
