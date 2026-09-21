@@ -20,6 +20,9 @@ authRouter.post("/register", async (req, res) => {
   if (!data.password) {
     return res.status(400).json({ error: "No password was supplied." });
   }
+  if (Buffer.byteLength(data.password, "utf8") > 72) {
+    return res.status(400).json({ error: "Password exceeds the 72-byte limit." });
+  }
   if (await db.has(userPath(data.username))) {
     return res.status(400).json({ error: "This user already exists." });
   }
@@ -57,6 +60,9 @@ authRouter.post("/login", async (req, res) => {
   }
   if (!data.password) {
     return res.status(400).json({ error: "No password was supplied." });
+  }
+  if (Buffer.byteLength(data.password, "utf8") > 72) {
+    return res.status(400).json({ error: "Password exceeds the 72-byte limit." });
   }
   if (!(await db.has(userPath(data.username)))) {
     return res.status(401).json({ error: "Incorrect credentials." }); // Don't let the client know the username isn't right...
