@@ -7,6 +7,10 @@ import { generateToken } from "../tokens.js";
 export const authRouter = Router();
 
 authRouter.post("/register", async (req, res) => {
+  if (!req.body) {
+    return res.status(400).json({ error: "Invalid request." });
+  }
+
   consola.log("- Got a POST request: auth/register.");
   const data = req.body;
   consola.log("  Request: " + JSON.stringify(data));
@@ -42,6 +46,10 @@ authRouter.post("/register", async (req, res) => {
 });
 
 authRouter.post("/login", async (req, res) => {
+  if (!req.body) {
+    return res.status(400).json({ error: "Invalid request." });
+  }
+
   consola.log("- Got a POST request: auth/login.");
   const data = req.body;
   consola.log("  Request: " + JSON.stringify(data));

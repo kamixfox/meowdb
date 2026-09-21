@@ -5,6 +5,10 @@ import { storagePath, db } from "../db.js";
 export const storageRouter = Router();
 
 storageRouter.put("/:key", async (req, res) => {
+  if (!req.body) {
+    return res.status(400).json({ error: "Invalid request." });
+  }
+
   const key = req.params.key;
   consola.log(`- Got a PUT request: storage/${key}.`);
   const value = req.body.value;
@@ -19,6 +23,10 @@ storageRouter.put("/:key", async (req, res) => {
 });
 
 storageRouter.get("/:key", async (req, res) => {
+  if (!req.body) {
+    return res.status(400).json({ error: "Invalid request." });
+  }
+
   const key = req.params.key;
   consola.log(`- Got a GET request: storage/${key}.`);
 
