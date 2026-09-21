@@ -16,5 +16,9 @@ COPY package*.json ./
 COPY --from=build /usr/src/app/node_modules ./node_modules
 COPY . .
 
+RUN chown -R node:node /usr/src/app
+
 EXPOSE 4090
+
+USER node
 CMD [ "npm", "start" ]
