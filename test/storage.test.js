@@ -10,7 +10,10 @@ describe("/storage", async function () {
 
   beforeAll(async function () {
     await db.delete(userPath(username));
-    await db.set(userPath(username), { username: username, passwordHash: "fake" });
+    await db.set(userPath(username), {
+      username: username,
+      passwordHash: "fake",
+    });
 
     authToken = await generateToken({ username: username });
   });

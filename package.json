@@ -20,6 +20,9 @@
   },
   "scripts": {
     "start": "node src/index.js",
+    "lint": "npx eslint .",
+    "format": "npx prettier --write .",
+    "format:check": "npx prettier --check .",
     "test": "vitest run"
   },
   "allowScripts": {
@@ -32,6 +35,7 @@
     "@eslint/markdown": "^8.0.3",
     "eslint": "^10.11.0",
     "globals": "^17.12.0",
+    "prettier": "^3.9.8",
     "supertest": "^7.2.2",
     "vitest": "^5.0.1"
   }
