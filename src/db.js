@@ -71,7 +71,12 @@ export async function setStorageValueIfAllowed(username, key, value, maxKeys) {
         error: `This account exceeds the ${maxB} byte storage limit.`,
       };
     }
-    store[k] = v;
+    Object.defineProperty(store, k, {
+      value: v,
+      enumerable: true,
+      writable: true,
+      configurable: true,
+    });
     allStorage[acc] = store;
     database
       .prepare(
