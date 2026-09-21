@@ -14,7 +14,7 @@ if (!process.env.JWT_SECRET) {
   process.exit(1);
 }
 
-if (process.env.JWT_SECRET == "CHANGE-ME-NOW-PLS") {
+if (process.env.JWT_SECRET == "<your-strong-random-secret>") {
   consola.error("You forgot to change JWT_SECRET!");
   process.exit(1);
 }

@@ -30,7 +30,7 @@ or with Docker:
 ```bash
 docker build -t meowdb .
 docker run -d --name meowdb \
-  -e JWT_SECRET=CHANGE-ME-NOW-PLS \
+  -e JWT_SECRET='<your-strong-random-secret>' \
   -v meowdb-data:/usr/src/app \
   -p 4090:4090 meowdb
 ```
