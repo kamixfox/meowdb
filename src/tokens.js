@@ -3,6 +3,11 @@ import jwt from "jsonwebtoken";
 const JWT_SECRET = () => process.env.JWT_SECRET;
 
 export async function generateToken(payload) {
+  if (payload?.username === "__proto__") {
+    throw new Error(
+      'Cannot issue a token for the reserved username "__proto__".',
+    );
+  }
   return jwt.sign(payload, JWT_SECRET(), { expiresIn: "7d" });
 }
 

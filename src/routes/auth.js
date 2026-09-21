@@ -17,6 +17,11 @@ authRouter.post("/register", async (req, res) => {
   if (!data.username) {
     return res.status(400).json({ error: "No username was supplied." }); // res.json replies with JSON
   }
+  if (data.username === "__proto__") {
+    return res
+      .status(400)
+      .json({ error: 'The username "__proto__" is reserved.' });
+  }
   if (!data.password) {
     return res.status(400).json({ error: "No password was supplied." });
   }
@@ -62,6 +67,11 @@ authRouter.post("/login", async (req, res) => {
 
   if (!data.username) {
     return res.status(400).json({ error: "No username was supplied." });
+  }
+  if (data.username === "__proto__") {
+    return res
+      .status(400)
+      .json({ error: 'The username "__proto__" is reserved.' });
   }
   if (!data.password) {
     return res.status(400).json({ error: "No password was supplied." });

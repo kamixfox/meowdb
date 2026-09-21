@@ -68,7 +68,9 @@ export async function setStorageValueIfAllowed(username, key, value, maxKeys) {
       .prepare("SELECT json FROM json WHERE ID = ?")
       .get("storage");
     const allStorage = row ? JSON.parse(row.json) : {};
-    const store = allStorage[acc] ?? {};
+    const store = Object.prototype.hasOwnProperty.call(allStorage, acc)
+      ? allStorage[acc]
+      : {};
     const exists = Object.prototype.hasOwnProperty.call(store, k);
     const totalKeys = Object.keys(store).length;
     const candidate = { ...store, [k]: v };
@@ -91,7 +93,12 @@ export async function setStorageValueIfAllowed(username, key, value, maxKeys) {
       writable: true,
       configurable: true,
     });
-    allStorage[acc] = store;
+    Object.defineProperty(allStorage, acc, {
+      value: store,
+      enumerable: true,
+      writable: true,
+      configurable: true,
+    });
     database
       .prepare(
         "INSERT INTO json (ID, json) VALUES (?, ?) ON CONFLICT(ID) DO UPDATE SET json = excluded.json",
