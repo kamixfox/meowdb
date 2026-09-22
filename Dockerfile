@@ -1,4 +1,4 @@
-FROM node:24-slim AS build
+FROM node:25-slim AS build
 WORKDIR /usr/src/app
 RUN apt-get update \
   && apt-get install -y --no-install-recommends python3 make g++ \
@@ -6,7 +6,7 @@ RUN apt-get update \
 COPY package*.json ./
 RUN npm ci --only-production
 
-FROM node:24-slim
+FROM node:25-slim
 WORKDIR /usr/src/app
 ENV NODE_ENV=production
 COPY package*.json ./
