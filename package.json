@@ -14,7 +14,7 @@
     "better-sqlite3": "^13.0.3",
     "consola": "^3.4.2",
     "cors": "^2.8.6",
-    "express": "^5.2.1",
+    "express": "^5.3.0",
     "jsonwebtoken": "^9.0.3",
     "quick.db": "^9.1.7"
   },
